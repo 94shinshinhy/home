@@ -22,15 +22,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                    .antMatchers("/").permitAll()
+                    .antMatchers("/", "/account/register", "/css/**").permitAll()
                     .anyRequest().authenticated()
                     .and()
                 .formLogin()
-                    .loginPage("/login")
+                    .loginPage("/account/login")
                     .permitAll()
                     .and()
                 .logout()
@@ -42,19 +46,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             throws Exception {
         auth.jdbcAuthentication()
                 .dataSource(dataSource)
-                .passwordEncoder(passwordEncoder())
                 .usersByUsernameQuery("select username, password, enabled "
                         + "from user "
                         + "where username = ?")
-                .authoritiesByUsernameQuery("select username, name "
-                        + "from user u "
-                        + "inner join user_role ur on u.id = ur.id "
-                        + "inner join role r on ur.id = r.id "
-                        + "where username = ?");
+                .authoritiesByUsernameQuery("select u.username, r.name "
+                        + "from user_role ur "
+                        + "inner join user u on ur.user_id = u.id "
+                        + "inner join role r on ur.role_id = r.id "
+                        + "where u.username = ?")
+                .passwordEncoder(passwordEncoder());
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }
