@@ -18,7 +18,8 @@ class UserApiController {
     
     @GetMapping("/users")
     List<User> all(){
-        return repository.findAll();
+        List<User> users = repository.findAll();
+        return users;
     }
     // end::get-aggregate-root[]
 
